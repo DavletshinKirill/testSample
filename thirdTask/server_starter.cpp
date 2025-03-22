@@ -1,84 +1,83 @@
+// tcp_server.cpp
 #include <iostream>
 #include <winsock2.h>
-#include <chrono>
-#include <thread>
+#include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib") // Подключение библиотеки Winsock
+#pragma comment(lib, "ws2_32.lib")
 
-#define PORT 8080
+#define PORT "8080"
 #define BUFFER_SIZE 1024
 
 int main() {
     WSADATA wsaData;
-    SOCKET serverSocket, clientSocket;
-    struct sockaddr_in serverAddr, clientAddr;
-    int addrLen = sizeof(clientAddr);
-    char buffer[BUFFER_SIZE] = {0};
-
-    // Инициализация Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "Initialization Error Winsock." << std::endl;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        std::cerr << "WSAStartup failed: " << result << std::endl;
         return 1;
     }
 
-    // Создание сокета
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == INVALID_SOCKET) {
-        std::cerr << "Socket Creation Error." << std::endl;
+    addrinfo hints = {};
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    addrinfo* addrResult;
+    result = getaddrinfo(NULL, PORT, &hints, &addrResult);
+    if (result != 0) {
+        std::cerr << "getaddrinfo failed: " << result << std::endl;
         WSACleanup();
         return 1;
     }
 
-    // Настройка адреса сервера
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT);
-
-    // Привязка сокета к адресу
-    if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        std::cerr << "Socket Connection Error." << std::endl;
-        closesocket(serverSocket);
+    SOCKET listenSocket = socket(addrResult->ai_family, addrResult->ai_socktype, addrResult->ai_protocol);
+    if (listenSocket == INVALID_SOCKET) {
+        std::cerr << "socket failed: " << WSAGetLastError() << std::endl;
+        freeaddrinfo(addrResult);
         WSACleanup();
         return 1;
     }
 
-    // Начало прослушивания
-    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
-        std::cerr << "Apply Error." << std::endl;
-        closesocket(serverSocket);
+    result = bind(listenSocket, addrResult->ai_addr, (int)addrResult->ai_addrlen);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "bind failed: " << WSAGetLastError() << std::endl;
+        freeaddrinfo(addrResult);
+        closesocket(listenSocket);
         WSACleanup();
         return 1;
     }
 
-    std::cout << "Server started. Wait for connection..." << std::endl;
+    freeaddrinfo(addrResult);
 
-    // Принятие подключения
-    clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &addrLen);
+    result = listen(listenSocket, SOMAXCONN);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "listen failed: " << WSAGetLastError() << std::endl;
+        closesocket(listenSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "Waiting for a connection..." << std::endl;
+
+    SOCKET clientSocket = accept(listenSocket, NULL, NULL);
     if (clientSocket == INVALID_SOCKET) {
-        std::cerr << "Error connection." << std::endl;
-        closesocket(serverSocket);
+        std::cerr << "accept failed: " << WSAGetLastError() << std::endl;
+        closesocket(listenSocket);
         WSACleanup();
         return 1;
     }
 
-    while (true) {
-    
-    // Чтение данных от клиента
-    int bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, 0);
-    if (bytesRead > 0) {
-        std::cout << "Get from client: " << buffer << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+    char buffer[BUFFER_SIZE];
+    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+    if (bytesReceived > 0) {
+        buffer[bytesReceived] = '\0';
+        std::cout << "Received: " << buffer << std::endl;
     }
 
-    // Отправка ответа клиенту
-    const char* response = "Got data!";
+    const char* response = "Hello from server!";
     send(clientSocket, response, strlen(response), 0);
-    std::cout << "Responce was sent for client." << response << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    }
-    // Закрытие сокетов
+
     closesocket(clientSocket);
-    closesocket(serverSocket);
+    closesocket(listenSocket);
     WSACleanup();
     return 0;
 }
