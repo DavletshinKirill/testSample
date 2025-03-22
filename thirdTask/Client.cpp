@@ -45,9 +45,10 @@ Client::Client()
 
 void Client::SendData()
 {
-    char* message = "Hello, server!";
+    char* message = inputString();
+    std::cout << message << std::endl;
     send(connectSocket, message, strlen(message), 0);
-    //delete[] message;
+    delete[] message;
 }
 
 void Client::ReadData()
@@ -61,7 +62,6 @@ void Client::ReadData()
 
 Client::~Client()
 {
-    std::cout << "Destructor Client";
     closesocket(connectSocket);
     WSACleanup();
 }

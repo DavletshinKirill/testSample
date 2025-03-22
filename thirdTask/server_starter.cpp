@@ -1,6 +1,7 @@
 #include "Server.cpp"
 
-int main() {
+int main() 
+{
     Server* server = new Server();
     server->ReadDataFromClient();
     server->SendResponceToClient();

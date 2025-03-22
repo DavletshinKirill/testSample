@@ -1,6 +1,7 @@
 #include "Client.cpp"
 
-int main() {
+int main() 
+{
     Client* client = new Client();
     client->SendData();
     client->ReadData();

@@ -61,7 +61,6 @@ Server::Server()
 
 Server::~Server()
 {
-    std::cout << "Destructor Server";
     closesocket(clientSocket);
     closesocket(listenSocket);
     WSACleanup();

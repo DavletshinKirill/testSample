@@ -31,4 +31,5 @@ int main()
     std::cout << "Counter after execution of all threads " << sharedCounter << std::endl;
     assert(sharedCounter == RESULT_COUNTER);
     std::cout << "Test was passed successfully" << std::endl;
+    return 0;
 }

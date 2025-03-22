@@ -23,5 +23,5 @@ int main()
     std::cout << "Result " << result << "\nExpected value " << PAGES_AMOUNT * 2 <<"\nThird test was passed successfully" <<std::endl;
 
     delete bookFactory;
-
+    return 0;
 }
