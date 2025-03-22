@@ -16,7 +16,6 @@ private:
     addrinfo hints = {};
     addrinfo* addrResult;
     int result;
-    const char* message = "Hello from client!";
     char buffer[BUFFER_SIZE];
 
 public:

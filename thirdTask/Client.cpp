@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "inputFromUser.cpp"
 
 #define CONNECTION_ERROR 1;
 
@@ -44,14 +45,16 @@ Client::Client()
 
 void Client::SendData()
 {
+    char* message = "Hello, server!";
     send(connectSocket, message, strlen(message), 0);
+    //delete[] message;
 }
 
 void Client::ReadData()
 {
     int bytesReceived = recv(connectSocket, buffer, BUFFER_SIZE, 0);
     if (bytesReceived > 0) {
-        buffer[bytesReceived] = '\0'; // Null-terminate the string
+        buffer[bytesReceived] = '\0';
         std::cout << "Received from server: " << buffer << std::endl;
     }
 }

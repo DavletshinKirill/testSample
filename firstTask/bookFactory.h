@@ -1,4 +1,3 @@
-#include <iostream>
 #include "book.h"
 
 class BookFactory
