@@ -1,19 +1,22 @@
 #include <iostream>
 #include <winsock2.h>
+#include <ws2tcpip.h>
 
-#pragma comment(lib, "ws2_32.lib") // Подключение библиотеки Winsock
+#pragma comment(lib, "ws2_32.lib")
 
-#define PORT 8080
+#define PORT "8080"
 #define BUFFER_SIZE 1024
 
 class Server
 {
 private:
     WSADATA wsaData;
-    SOCKET serverSocket, clientSocket;
-    struct sockaddr_in serverAddr, clientAddr;
-    int addrLen = sizeof(clientAddr);
-    char buffer[BUFFER_SIZE] = {0};
+    int result;
+    addrinfo hints = {};
+    addrinfo* addrResult;
+    SOCKET listenSocket, clientSocket;
+    char buffer[BUFFER_SIZE];
+    const char* response = "Hello from server!";
 
 public:
     Server();

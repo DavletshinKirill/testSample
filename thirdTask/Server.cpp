@@ -4,47 +4,56 @@
 
 Server::Server()
 {
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-    {
-        std::cerr << "Initialization Error Winsock." << std::endl;
+    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        std::cerr << "WSAStartup failed: " << result << std::endl;
         throw CONNECTION_ERROR;
     }
 
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == INVALID_SOCKET)
-    {
-        std::cerr << "Socket Creation Error." << std::endl;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    result = getaddrinfo(NULL, PORT, &hints, &addrResult);
+    if (result != 0) {
+        std::cerr << "getaddrinfo failed: " << result << std::endl;
         WSACleanup();
         throw CONNECTION_ERROR;
     }
 
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT);
-
-    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-    {
-        std::cerr << "Socket Connection Error." << std::endl;
-        closesocket(serverSocket);
+    listenSocket = socket(addrResult->ai_family, addrResult->ai_socktype, addrResult->ai_protocol);
+    if (listenSocket == INVALID_SOCKET) {
+        std::cerr << "socket failed: " << WSAGetLastError() << std::endl;
+        freeaddrinfo(addrResult);
         WSACleanup();
         throw CONNECTION_ERROR;
     }
 
-    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR)
-    {
-        std::cerr << "Apply Error." << std::endl;
-        closesocket(serverSocket);
+    result = bind(listenSocket, addrResult->ai_addr, (int)addrResult->ai_addrlen);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "bind failed: " << WSAGetLastError() << std::endl;
+        freeaddrinfo(addrResult);
+        closesocket(listenSocket);
         WSACleanup();
         throw CONNECTION_ERROR;
     }
 
-    std::cout << "Server started. Wait for connection..." << std::endl;
+    freeaddrinfo(addrResult);
 
-    clientSocket = accept(serverSocket, (struct sockaddr *)&clientAddr, &addrLen);
-    if (clientSocket == INVALID_SOCKET)
-    {
-        std::cerr << "Error connection." << std::endl;
-        closesocket(serverSocket);
+    result = listen(listenSocket, SOMAXCONN);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "listen failed: " << WSAGetLastError() << std::endl;
+        closesocket(listenSocket);
+        WSACleanup();
+        throw CONNECTION_ERROR;
+    }
+
+    std::cout << "Waiting for a connection..." << std::endl;
+
+    clientSocket = accept(listenSocket, NULL, NULL);
+    if (clientSocket == INVALID_SOCKET) {
+        std::cerr << "accept failed: " << WSAGetLastError() << std::endl;
+        closesocket(listenSocket);
         WSACleanup();
         throw CONNECTION_ERROR;
     }
@@ -54,22 +63,21 @@ Server::~Server()
 {
     std::cout << "Destructor Server";
     closesocket(clientSocket);
-    closesocket(serverSocket);
+    closesocket(listenSocket);
     WSACleanup();
 }
 
 void Server::ReadDataFromClient()
 {
-    int bytesRead = recv(clientSocket, buffer, BUFFER_SIZE, 0);
-    if (bytesRead > 0)
-    {
-        std::cout << "Get from client: " << buffer << std::endl;
+    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+    if (bytesReceived > 0) {
+        buffer[bytesReceived] = '\0';
+        std::cout << "Received: " << buffer << std::endl;
     }
 }
 
 void Server::SendResponceToClient()
 {
-    const char *response = "Got data!";
+    const char* response = "Hello from server!";
     send(clientSocket, response, strlen(response), 0);
-    std::cout << "Responce was sent for client." << std::endl;
 }

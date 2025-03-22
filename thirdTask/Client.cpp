@@ -4,60 +4,61 @@
 
 Client::Client()
 {
-    WSADATA wsaData;
-    SOCKET sock;
-    struct sockaddr_in serverAddr;
-    char buffer[BUFFER_SIZE] = {0};
-
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-    {
-        std::cerr << "Initialization Exception Winsock." << std::endl;
+    result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0) {
+        std::cerr << "WSAStartup failed: " << result << std::endl;
         throw CONNECTION_ERROR;
     }
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET)
-    {
-        std::cerr << "Socket Creation Exception." << std::endl;
+    result = getaddrinfo(SERVER_IP, PORT, &hints, &addrResult);
+    if (result != 0) {
+        std::cerr << "getaddrinfo failed: " << result << std::endl;
         WSACleanup();
         throw CONNECTION_ERROR;
     }
 
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_port = htons(PORT);
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    connectSocket = socket(addrResult->ai_family, addrResult->ai_socktype, addrResult->ai_protocol);
+    if (connectSocket == INVALID_SOCKET) {
+        std::cerr << "socket failed: " << WSAGetLastError() << std::endl;
+        freeaddrinfo(addrResult);
+        WSACleanup();
+        throw CONNECTION_ERROR;
+    }
+    result = connect(connectSocket, addrResult->ai_addr, (int)addrResult->ai_addrlen);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "connect failed: " << WSAGetLastError() << std::endl;
+        closesocket(connectSocket);
+        connectSocket = INVALID_SOCKET;
+    }
 
-    if (connect(sock, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-    {
-        std::cerr << "Connection Refuse." << std::endl;
-        closesocket(sock);
+    freeaddrinfo(addrResult);
+
+    if (connectSocket == INVALID_SOCKET) {
+        std::cerr << "Unable to connect to server!" << std::endl;
         WSACleanup();
         throw CONNECTION_ERROR;
     }
 }
 
-void Client::SendData(char *message)
+void Client::SendData()
 {
-    send(sock, message, strlen(message), 0);
-    std::cout << "Message Sent." << std::endl;
+    send(connectSocket, message, strlen(message), 0);
 }
 
 void Client::ReadData()
 {
-    int bytesReceived = recv(sock, buffer, BUFFER_SIZE, 0);
-    if (bytesReceived > 0)
-    {
-        std::cout << "Server reply: " << buffer << std::endl;
-    }
-    else
-    {
-        std::cerr << "Server reply error" << std::endl;
+    int bytesReceived = recv(connectSocket, buffer, BUFFER_SIZE, 0);
+    if (bytesReceived > 0) {
+        buffer[bytesReceived] = '\0'; // Null-terminate the string
+        std::cout << "Received from server: " << buffer << std::endl;
     }
 }
 
 Client::~Client()
 {
     std::cout << "Destructor Client";
-    closesocket(sock);
+    closesocket(connectSocket);
     WSACleanup();
 }
