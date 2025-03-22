@@ -13,5 +13,7 @@ struct Book
 };
 
 unsigned int countPages(std::vector<Book*> books);
+Book* bookFactory(std::string title, std::string author, unsigned int year, unsigned pageAmount);
+void deleteBookVector(std::vector<Book*> books);
 
-#endif // BOOK_H
+#endif
