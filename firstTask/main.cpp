@@ -1,21 +1,27 @@
 #include <iostream>
-#include "book.cpp"
+#include "bookFactory.cpp"
 #include <cassert>
 
+#define EMPTY_VECTOR 0
 #define PAGES_AMOUNT 1605
 
 int main()
 {
-    std::vector<Book*> books; 
-    books.push_back(bookFactory("1984", "George Orwell", 1949, 328));
-    books.push_back(bookFactory("To Kill a Mockingbird", "Harper Lee", 1960, 281));
-    books.push_back(bookFactory("Pride and Prejudice", "Jane Austen", 1813, 432));
-    books.push_back(bookFactory("The Master and Margarita", "Mikhail Bulgakov", 1967, 384));
-    books.push_back(bookFactory("The Great Gatsby", "F. Scott Fitzgerald", 1925, 180));
+    BookFactory* bookFactory = new BookFactory();
+    unsigned int result = countPages(bookFactory->getBooks());
+    assert(result == EMPTY_VECTOR);
+    std::cout << "Result " << result << "\nExpected value " << EMPTY_VECTOR << "\nFirst test was passed successfully" << std::endl;
 
-    unsigned int result = countPages(books);
-    std::cout << "Result " << result << std::endl;
+    bookFactory->fillVectorFiveBooks();
+    result = countPages(bookFactory->getBooks());
     assert(result == PAGES_AMOUNT);
-    std::cout << "Test was passed successfully" << std::endl;
-    deleteBookVector(books);
+    std::cout << "Result " << result << "\nExpected value " << PAGES_AMOUNT << "\nSecond test was passed successfully" <<std::endl;
+
+    bookFactory->fillVectorFiveBooks();
+    result = countPages(bookFactory->getBooks());
+    assert(result == PAGES_AMOUNT * 2);
+    std::cout << "Result " << result << "\nExpected value " << PAGES_AMOUNT * 2 <<"\nThird test was passed successfully" <<std::endl;
+
+    delete bookFactory;
+
 }
