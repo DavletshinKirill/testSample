@@ -79,4 +79,5 @@ void Server::SendResponceToClient()
 {
     const char* response = "Hello from server!";
     send(clientSocket, response, strlen(response), 0);
+    std::cout << "Send responce for client: " << response << std::endl;
 }
