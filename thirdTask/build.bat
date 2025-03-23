@@ -9,9 +9,9 @@ if not exist "./bin" (
     mkdir "./bin"
 )
 
-
 g++ -O2 .\src\client_starter.cpp -o .\bin\client_starter.exe -lws2_32
 g++ -O2 .\src\server_starter.cpp -o .\bin\server_starter.exe -lws2_32
+
 if errorlevel 1 (
     echo Compilation failed.
     exit /b 1

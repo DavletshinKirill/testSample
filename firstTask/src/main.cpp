@@ -1,9 +1,6 @@
 #include <iostream>
 #include "bookFactory.cpp"
 
-#define EMPTY_VECTOR 0
-#define PAGES_AMOUNT 1605
-
 int main()
 {
     BookFactory* bookFactory = new BookFactory();

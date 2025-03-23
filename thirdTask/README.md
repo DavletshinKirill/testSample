@@ -3,7 +3,6 @@
 ## Сборка проекта
 ### .\build.bat
 
-
 ## Запуск Сервера
 ### .\bin\client_starter.exe
 

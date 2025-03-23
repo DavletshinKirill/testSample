@@ -10,10 +10,11 @@ if not exist "./bin" (
 )
 
 g++ -O2 ./src/main.cpp -o ./bin/main.exe
+g++ -O2 ./src/test.cpp -o ./bin/test.exe
 
 if errorlevel 1 (
     echo Compilation failed.
     exit /b 1
 )
 
-echo Compilation successful. You can run the program with .\bin\main.exe
+echo Compilation successful. You can run the program with .\bin\main.exe or run tests .\bin\test.exe
