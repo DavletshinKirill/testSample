@@ -1,4 +1,4 @@
-#include "book.h"
+#include "book.hpp"
 
 class BookFactory
 {
@@ -8,5 +8,5 @@ class BookFactory
      BookFactory();
      ~BookFactory();
      void fillVectorFiveBooks();
-     std::vector<Book*>* getBooks();
+     std::vector<Book*>& getBooks();
 };

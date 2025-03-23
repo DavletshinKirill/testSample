@@ -1,4 +1,4 @@
-#include "bookFactory.h"
+#include "../include/bookFactory.hpp"
 #include "book.cpp"
 
 BookFactory::BookFactory()
@@ -26,7 +26,7 @@ void BookFactory::fillVectorFiveBooks()
     books->push_back(new Book("The Great Gatsby", "F. Scott Fitzgerald", 1925, 180));
 }
 
-std::vector<Book *> *BookFactory::getBooks()
+std::vector<Book *>& BookFactory::getBooks()
 {
-    return books;
+    return *books;
 }

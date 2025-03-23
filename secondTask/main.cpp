@@ -21,7 +21,7 @@ int main()
     const int threadsAmount = 5;
     std::vector<std::thread> threads;
 
-    for (int i = 0; i < threadsAmount; ++i) {
+    for (size_t i = 0; i < threadsAmount; ++i) {
         threads.emplace_back(incrementAndPrintResult, std::ref(sharedCounter));
     }
 
