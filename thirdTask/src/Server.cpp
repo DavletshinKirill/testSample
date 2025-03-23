@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "../include/Server.hpp"
 
 #define CONNECTION_ERROR 1;
 
